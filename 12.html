@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MiguelZap - O Universo Geek</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #e63946; 
+            --secondary: #457b9d; 
+            --bg-geek: #1d1d26; 
+            --surface: #2a2a35;
+            --text-main: #f1faee;
+            --radius-soft: 18px;
+            --comic-shadow: 4px 4px 0px #000;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body {
+            margin: 0;
+            background-color: var(--bg-geek);
+            background-image: radial-gradient(#2d2d3d 1px, transparent 0);
+            background-size: 24px 24px;
+            height: 100dvh;
+            color: var(--text-main);
+            display: flex;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .comic-font { font-family: 'Bangers', cursive; letter-spacing: 2px; }
+
+        /* AUTH SCREEN */
+        #auth-screen { position: fixed; inset: 0; z-index: 3000; background: var(--bg-geek); display: flex; align-items: center; justify-content: center; }
+        .auth-card { width: 380px; padding: 40px; text-align: center; background: var(--surface); border-radius: var(--radius-soft); border: 3px solid #000; box-shadow: 8px 8px 0px #000; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 2px solid #000; background: #fff; color: #000; }
+
+        /* LAYOUT */
+        #app-screen { display: none; width: 100%; height: 100%; padding: 15px; gap: 15px; }
+        .sidebar { width: 320px; background: var(--surface); border-radius: var(--radius-soft); border: 2px solid #000; display: flex; flex-direction: column; box-shadow: var(--comic-shadow); }
+        .main-content { flex: 1; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; }
+
+        /* COMPONENTES */
+        .btn-geek { padding: 10px; border-radius: 12px; border: 2px solid #000; background: var(--secondary); color: white; font-weight: bold; cursor: pointer; box-shadow: 3px 3px 0px #000; text-transform: uppercase; font-size: 11px; transition: 0.1s; }
+        .btn-geek:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px #000; }
+        
+        .chat-item { padding: 12px; margin: 5px 10px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; border: 1px solid transparent; }
+        .chat-item:hover { background: rgba(255,255,255,0.05); }
+
+        /* FEED & STORIES */
+        #feed-area { display: none; flex-direction: column; gap: 20px; overflow-y: auto; padding-right: 10px; }
+        .stories-bar { display: flex; gap: 15px; padding: 10px; background: var(--surface); border: 2px solid #000; border-radius: var(--radius-soft); overflow-x: auto; }
+        .story-circle { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); padding: 2px; flex-shrink: 0; cursor: pointer; }
+        .post-card { background: var(--surface); border: 3px solid #000; border-radius: var(--radius-soft); overflow: hidden; box-shadow: var(--comic-shadow); }
+        .post-media { width: 100%; max-height: 500px; object-fit: cover; display: block; background: #000; }
+
+        /* MESSAGES */
+        #chat-area { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+        #messages-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+        .bubble { max-width: 70%; padding: 12px; border-radius: 15px; font-size: 14px; border: 2px solid #000; }
+        .bubble.sent { background: #fff; color: #000; align-self: flex-end; box-shadow: -3px 3px 0px var(--primary); }
+        .bubble.received { background: var(--surface); align-self: flex-start; box-shadow: 3px 3px 0px var(--secondary); }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 4000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 10px; }
+        
+        .user-note { font-size: 11px; background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; border: 1px solid #000; margin-top: 5px; display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen">
+        <div class="auth-card">
+            <h1 class="comic-font" style="font-size: 40px; color: var(--primary); margin:0;">MIGUELZAP</h1>
+            <p style="font-size: 10px; margin-bottom: 20px;">SISTEMA DE COMUNICAÇÃO UNDERGROUND</p>
+            <input type="email" id="email" placeholder="E-mail">
+            <input type="password" id="password" placeholder="Senha">
+            <input type="text" id="username" placeholder="Seu Nickname" style="display:none">
+            <button class="btn-geek" style="width:100%; margin-top:15px; height: 45px;" onclick="handleLogin()" id="btn-login">ACESSAR BASE</button>
+            <p onclick="toggleAuth()" id="btn-toggle" style="font-size:12px; cursor:pointer; margin-top:15px; text-decoration: underline;">Criar nova identidade</p>
+        </div>
+    </div>
+
+    <div id="app-screen">
+        <div class="sidebar">
+            <div style="padding: 20px; background: var(--primary); border-radius: 16px 16px 0 0; border-bottom: 2px solid #000;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <img id="sidebar-avatar" style="width:50px; height:50px; border-radius:50%; border:2px solid #000; object-fit: cover;" src="https://ui-avatars.com/api/?name=M">
+                    <div>
+                        <b id="sidebar-name" class="comic-font">MIGUEL</b><br>
+                        <div id="display-note" class="user-note">Pensando...</div>
+                    </div>
+                    <span class="material-icons" style="margin-left:auto; cursor:pointer;" onclick="openSettings()">settings</span>
+                </div>
+            </div>
+            
+            <div class="nav-tabs" style="padding: 15px 15px 0 15px;">
+                <button class="btn-geek" style="flex:1" onclick="switchTab('chat')">CHATS</button>
+                <button class="btn-geek" style="flex:1; background: #9b59b6" onclick="switchTab('feed')">FEED</button>
+            </div>
+
+            <div id="chat-list-container" style="flex:1; overflow-y:auto; display: flex; flex-direction: column;">
+                <div style="padding:15px;"><button class="btn-geek" style="width:100%" onclick="openAddModal()">+ NOVO GRUPO / CHAT</button></div>
+                <div id="chat-list"></div>
+            </div>
+            
+            <button class="btn-geek" style="margin:10px; background:var(--bg-geek)" onclick="logout()">DESCONECTAR</button>
+        </div>
+
+        <div class="main-content">
+            <div id="chat-area">
+                <div style="background:var(--surface); padding:15px; border-radius:15px; border:2px solid #000; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div id="chat-title" class="comic-font" style="font-size:20px;">SALA DE COMANDO</div>
+                        <div id="chat-subtitle" style="font-size:10px; opacity:0.6;">Selecione um contato para iniciar</div>
+                    </div>
+                </div>
+                <div id="messages-list"></div>
+                <div class="input-wrapper" id="input-area-wrapper" style="display:none; background: var(--surface); padding: 12px; border-radius: 15px; gap: 10px; border: 2px solid #000;">
+                    <input type="text" id="msg-input" placeholder="Envie sua mensagem..." style="margin:0; border:none; background:transparent; color:white;" onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="btn-geek" onclick="sendMessage()"><span class="material-icons">send</span></button>
+                </div>
+            </div>
+
+            <div id="feed-area">
+                <div class="stories-bar" id="stories-list">
+                    <div class="story-circle" onclick="alert('Postar Story em breve!')" style="display:flex; align-items:center; justify-content:center; background:#444;">
+                        <span class="material-icons">add</span>
+                    </div>
+                </div>
+                
+                <div style="padding: 15px; background: var(--surface); border: 2px solid #000; border-radius: var(--radius-soft);">
+                    <h3 class="comic-font" style="margin-top:0;">NOVO POST</h3>
+                    <input type="text" id="post-url" placeholder="URL da Imagem ou Vídeo">
+                    <input type="text" id="post-caption" placeholder="Legenda...">
+                    <button class="btn-geek" onclick="createNewPost()">PUBLICAR NO FEED</button>
+                </div>
+
+                <div id="feed-list" style="display:flex; flex-direction:column; gap:20px;">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-settings" class="modal">
+        <div class="auth-card">
+            <h2 class="comic-font">PERFIL GEEK</h2>
+            <p>Foto de Perfil (URL):</p>
+            <input type="text" id="set-avatar-url" placeholder="https://...">
+            <p>Sua Nota (Status):</p>
+            <input type="text" id="set-user-note" placeholder="O que está rolando?">
+            <p>Papel de Parede (URL):</p>
+            <input type="text" id="bg-url" placeholder="Link da imagem">
+            <button class="btn-geek" style="width:100%; margin-top:10px;" onclick="saveSettings()">SALVAR ALTERAÇÕES</button>
+            <button class="btn-geek" style="margin-top:10px; background:none; border:1px solid #444;" onclick="closeModals()">FECHAR</button>
+        </div>
+    </div>
+
+    <div id="modal-add" class="modal">
+        <div class="auth-card">
+            <h2 class="comic-font">ADICIONAR</h2>
+            <input type="email" id="new-contact-email" placeholder="E-mail do Amigo">
+            <button class="btn-geek" style="width:100%;" onclick="addPrivateChat()">INICIAR CHAT PRIVADO</button>
+            <button class="btn-geek" style="margin-top:10px; background:none; border:1px solid #444;" onclick="closeModals()">FECHAR</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, push, onValue, set, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDLzKVUFDu9mL_38bQ65V6ATrUCyn1MmaY",
+            authDomain: "chat-ba44c.firebaseapp.com",
+            databaseURL: "https://chat-ba44c-default-rtdb.firebaseio.com",
+            projectId: "chat-ba44c",
+            storageBucket: "chat-ba44c.firebasestorage.app",
+            messagingSenderId: "802680335472",
+            appId: "1:802680335472:web:bf121d0615669c17fc58b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let user = null;
+        let currentChatId = null;
+
+        // --- NAVEGAÇÃO ---
+        window.switchTab = (tab) => {
+            document.getElementById('chat-area').style.display = tab === 'chat' ? 'flex' : 'none';
+            document.getElementById('feed-area').style.display = tab === 'feed' ? 'flex' : 'none';
+            if(tab === 'feed') loadFeed();
+        };
+
+        // --- AUTH ---
+        window.handleLogin = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const name = document.getElementById('username').value;
+            const isReg = document.getElementById('username').style.display === 'block';
+            try {
+                if(isReg) {
+                    const c = await createUserWithEmailAndPassword(auth, email, pass);
+                    await updateProfile(c.user, { displayName: name });
+                    await set(ref(db, `users/${c.user.uid}/profile`), { name, email, note: "Explorando o MiguelZap", photo: `https://ui-avatars.com/api/?name=${name}` });
+                } else { await signInWithEmailAndPassword(auth, email, pass); }
+            } catch(e) { alert(e.message); }
+        };
+
+        onAuthStateChanged(auth, u => {
+            if(u) {
+                user = u;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app-screen').style.display = 'flex';
+                loadUserData();
+                loadChats();
+            } else { 
+                document.getElementById('auth-screen').style.display = 'flex'; 
+                document.getElementById('app-screen').style.display = 'none'; 
+            }
+        });
+
+        // --- PROFILE & SETTINGS ---
+        function loadUserData() {
+            onValue(ref(db, `users/${user.uid}/profile`), snap => {
+                if(snap.exists()){
+                    const data = snap.val();
+                    document.getElementById('sidebar-name').innerText = data.name;
+                    document.getElementById('display-note').innerText = data.note || "";
+                    document.getElementById('sidebar-avatar').src = data.photo || "";
+                    if(data.wallpaper) document.body.style.backgroundImage = `url('${data.wallpaper}')`;
+                }
+            });
+        }
+
+        window.saveSettings = async () => {
+            const photo = document.getElementById('set-avatar-url').value;
+            const note = document.getElementById('set-user-note').value;
+            const wall = document.getElementById('bg-url').value;
+            
+            const updates = {};
+            if(photo) updates.photo = photo;
+            if(note) updates.note = note;
+            if(wall) updates.wallpaper = wall;
+
+            await update(ref(db, `users/${user.uid}/profile`), updates);
+            closeModals();
+        };
+
+        // --- FEED ---
+        window.createNewPost = async () => {
+            const url = document.getElementById('post-url').value;
+            const caption = document.getElementById('post-caption').value;
+            if(!url) return;
+
+            await push(ref(db, 'posts'), {
+                uid: user.uid,
+                author: user.displayName,
+                media: url,
+                text: caption,
+                timestamp: serverTimestamp()
+            });
+            document.getElementById('post-url').value = "";
+            document.getElementById('post-caption').value = "";
+        };
+
+        function loadFeed() {
+            onValue(ref(db, 'posts'), snap => {
+                const list = document.getElementById('feed-list');
+                list.innerHTML = "";
+                let posts = [];
+                snap.forEach(p => { posts.push(p.val()); });
+                posts.reverse().forEach(data => {
+                    const card = document.createElement('div');
+                    card.className = 'post-card';
+                    card.innerHTML = `
+                        <div style="padding:10px; display:flex; align-items:center; gap:10px; border-bottom:2px solid #000;">
+                            <b class="comic-font">${data.author}</b>
+                        </div>
+                        <img src="${data.media}" class="post-media" onerror="this.src='https://placehold.co/600x400?text=Erro+ao+Carregar'">
+                        <div style="padding:15px;">
+                            <p style="margin:0;"><b>${data.author}:</b> ${data.text}</p>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            });
+        }
+
+        // --- CHAT ---
+        function loadChats() {
+            onValue(ref(db, `users/${user.uid}/chats`), snap => {
+                const list = document.getElementById('chat-list');
+                list.innerHTML = "";
+                snap.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'chat-item';
+                    div.innerHTML = `<span class="material-icons">person</span> <b>${c.val().friendName}</b>`;
+                    div.onclick = () => openChat(c.key, c.val().friendName);
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        window.openChat = (id, name) => {
+            currentChatId = id;
+            document.getElementById('chat-title').innerText = name;
+            document.getElementById('input-area-wrapper').style.display = 'flex';
+            loadMessages();
+        };
+
+        window.sendMessage = async () => {
+            const input = document.getElementById('msg-input');
+            if(!input.value.trim() || !currentChatId) return;
+            await push(ref(db, `messages/${currentChatId}`), {
+                text: input.value,
+                sender: user.displayName,
+                senderId: user.uid,
+                timestamp: serverTimestamp()
+            });
+            input.value = "";
+        };
+
+        function loadMessages() {
+            onValue(ref(db, `messages/${currentChatId}`), snap => {
+                const list = document.getElementById('messages-list');
+                list.innerHTML = "";
+                snap.forEach(m => {
+                    const d = m.val();
+                    const isMe = d.senderId === user.uid;
+                    const div = document.createElement('div');
+                    div.className = `bubble ${isMe ? 'sent' : 'received'}`;
+                    div.innerHTML = `<b>${d.sender}:</b><br>${d.text}`;
+                    list.appendChild(div);
+                });
+                list.scrollTop = list.scrollHeight;
+            });
+        }
+
+        window.addPrivateChat = async () => {
+            const email = document.getElementById('new-contact-email').value;
+            const usersSnap = await get(ref(db, 'users'));
+            let fUid = null, fName = "";
+            usersSnap.forEach(u => { 
+                // Busca nos perfis
+                if(u.val().profile && u.val().profile.email === email) {
+                    fUid = u.key; fName = u.val().profile.name;
+                }
+            });
+
+            if(fUid && fUid !== user.uid) {
+                const chatId = [user.uid, fUid].sort().join("_");
+                await update(ref(db, `users/${user.uid}/chats/${chatId}`), { friendName: fName });
+                await update(ref(db, `users/${fUid}/chats/${chatId}`), { friendName: user.displayName });
+                closeModals();
+            } else { alert("Usuário não encontrado!"); }
+        };
+
+        // --- UI HELPERS ---
+        window.toggleAuth = () => {
+            const u = document.getElementById('username');
+            const isLogin = u.style.display === 'none';
+            u.style.display = isLogin ? 'block' : 'none';
+            document.getElementById('btn-login').innerText = isLogin ? 'CRIAR IDENTIDADE' : 'ACESSAR BASE';
+        };
+        window.openAddModal = () => document.getElementById('modal-add').style.display = 'flex';
+        window.openSettings = () => document.getElementById('modal-settings').style.display = 'flex';
+        window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        window.logout = () => signOut(auth);
+
+    </script>
+</body>
+</html>
